@@ -56,7 +56,13 @@ extern "C" {
 *
 *   The mpool_t Structure Contains Only Data Members for Managing a Memory Pool, 
 *   but Does not Contain the Pool Storage, which must be Provided Externally during
-*   the Pool Initialization.
+*   the Pool Initialization. 
+*
+*   Note: 
+*   () The Storage Space for Memory Block and Memory Pool Itself MUST be Allocated
+*      Statically, So the Transferred Memory Block or Event to Other Active Object
+*      Can be Release Accurately when The Active Object which Own this Memory Pool
+*      or Event Pool has been Abolished (This is, the Active Object is Exits).
 ***************************************************************************************/
 typedef struct mpool_tag
 {
@@ -176,6 +182,17 @@ MPOOL_EXT void_t *mpool_get(mpool_t *me);
 *       Critical Section is not Supported.
 ***************************************************************************************/
 MPOOL_EXT int16_t mpool_put(void_t *block);
+
+/***************************************************************************************
+*   All Block are Recycled for the Given Memory Pool ? 
+*
+*   Description:  All Block are Recycled for the Given Memory Pool ? 
+*   Argument: me -- Pointer to the mpool_t Struct to be Inquired. 
+*   Return: 1 is True, 0 is False, -1 is Failure
+*
+*   NOTE: 
+***************************************************************************************/
+MPOOL_EXT int16_t mpool_all_recycled(mpool_t *me); 
 
 /***************************************************************************************
 *   Get the Margin of the Given Memory Pool. 

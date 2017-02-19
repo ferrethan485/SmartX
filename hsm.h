@@ -63,9 +63,10 @@ HSM_EXT int8_t const ROM_KEYWORDS * hsm_get_version(void_t);
 struct hsm_state_tag;
 struct hsm_tag;
 /* The Signature of HSM Function  */
-typedef int16_t (*hsm_function_t)(struct hsm_tag *);   /* True = 1, False = 0, Failure = -1 */
+typedef int16_t (*hsm_function_t)(struct hsm_tag *);    /* True = 1, False = 0, Failure = -1 */
 typedef int16_t (*hsm_dispatch_t)(struct hsm_tag *, event_t const *);       /* True = 1, False = 0, Failure = -1 */
 typedef int16_t (*hsm_is_in_t)(struct hsm_tag *, hsm_state_tag const *);    /* True = 1, False = 0, Failure = -1 */
+typedef event_t *(*hsm_event_t)(struct hsm_tag *);      /* Used by User's Application */
 
 /***************************************************************************************
 *   HSM Reaction Structure.
@@ -95,12 +96,12 @@ typedef struct hsm_reaction_tag {
 ***************************************************************************************/
 typedef struct hsm_state_tag { 
     int16_t  depth;                 /* Depth in HSM Layer */
-    struct hsm_state_tag * top;     /* Top   Level State  */
-    struct hsm_state_tag * down;    /* Down  Level State  */
+    struct hsm_state_tag *top;      /* Top   Level State  */
+    struct hsm_state_tag *down;     /* Down  Level State  */
     hsm_function_t  enter;          /* Entry Action Function */
     hsm_function_t  quit;           /* Exit  Action Function */
     hsm_function_t  service;        /* Do    Action Function */
-    hsm_reaction_t * reaction;      /* Event Reaction Table  */
+    hsm_reaction_t *reaction;       /* Event Reaction Table  */
     int16_t  rtotal;                /* Total of Items in Event Reaction Table */
     int8_t*  name;                  /* Strings of State Name, Used for Spyer  */
 } hsm_state_t; 
@@ -186,6 +187,7 @@ typedef struct hsm_tag
     /* Object Method, Public */
     hsm_function_t init_trans;    /* Initial Transition of HSM State Machine */
     hsm_dispatch_t dispatch;      /* Dispatches an Event to HSM */
+    hsm_function_t service;       /* Service of this HSM, MUST BE IMPLEMENT BY USER */
     hsm_is_in_t    is_in;         /* Tests a Given State */
     hsm_function_t is_idle;       /* Is in IDLE State, MUST BE IMPLEMENT BY USER */
     hsm_function_t is_final;      /* Is in FINAL State */

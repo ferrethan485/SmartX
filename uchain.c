@@ -23,10 +23,10 @@
 
 /***************************************************************************************
 *   Component : Active Object Application FrameWork
-*   Group : Active Object Manager
-*   File Name : rchain.c
+*   Group : General Chain
+*   File Name : uchain.c
 *   Version : 1.0
-*   Description : Base for Priority-Based Event Register Chain
+*   Description : Base for General Chain
 *   Author : JinHui Han
 *   History : 
 *          Name            Date                    Remarks
@@ -44,22 +44,20 @@
 #include "ticks.h"
 #include "fault.h"
 #include "mpool.h"
-#include "event.h"
 #include "cpool.h"
+#include "active.h"
 
 #define  EXTERN_GLOBALS
-#include "rchain.h"
+#include "uchain.h"
 
-ASSERT_THIS_FILE(rchain.c)
-FAULT_THIS_FILE(rchain.c)
+ASSERT_THIS_FILE(uchain.c)
+FAULT_THIS_FILE(uchain.c)
 
 /***************************************************************************************
-*   rchain_init() Implementation.
+*   uchain_init() Implementation.
 ***************************************************************************************/
-int16_t rchain_init(chain_t **me)
+int16_t uchain_init(chain_t **me)
 {
-    int16_t ret; 
-
     ASSERT_REQUIRE(me != (chain_t **)0); 
     if (me == (chain_t **)0) { 
         return FAILURE; 
@@ -67,34 +65,29 @@ int16_t rchain_init(chain_t **me)
 
     *me = (chain_t *)0;    /* Initialize the List Head to 0 */
 
-    SPYER_RCHAIN("Priority Based Event Register Chain %X is Initialized", me); 
+    SPYER_UCHAIN("General Chain %X is Initialized", me); 
 
-    return ret; 
+    return TRUE; 
 }
 
 /***************************************************************************************
-*   rchain_find() Implementation. 
+*   uchain_find() Implementation. Internally
 ***************************************************************************************/
-chain_t *rchain_find(chain_t **me, signal_t signal)
+chain_t *uchain_find(chain_t **me, void_t *cell)
 {
     chain_t *chain;
-
-    ASSERT_REQUIRE(me  != (chain_t **)0);
-    if (me == (chain_t **)0) { 
-        return (chain_t *)0; 
-    } 
 
     if (*me == (chain_t *)0) { 
         /* Chain Pool is Empty */
         return (chain_t *)0; 
     } 
     chain = *me; 
-    if ((event_t *)(chain->builtin)->signal == signal) { 
+    if ((void_t *)(chain->builtin) == cell) { 
         /* Find It */
         return chain; 
     } 
     chain = chain->next; 
-    while ((chain != *me) && ((event_t *)(chain->builtin)->signal != signal)) { 
+    while ((chain != *me) && ((void_t *)(chain->builtin) != cell)) { 
         chain = chain->next; 
     } 
     if (chain == *me) { 
@@ -106,95 +99,80 @@ chain_t *rchain_find(chain_t **me, signal_t signal)
 }
 
 /***************************************************************************************
-*   rchain_bind() Implementation.
+*   uchain_bind() Implementation.
 ***************************************************************************************/
-int16_t rchain_bind(chain_t **me, event_t *event)
+int16_t uchain_bind(chain_t **me, void_t *cell)
 {
     chain_t *chain;
     chain_t *current;
 
-    ASSERT_REQUIRE(me  != (chain_t **)0);
-    ASSERT_REQUIRE(event != (event_t *)0);
-    if ((me == (chain_t **)0) || (event == (event_t *)0)) { 
+    ASSERT_REQUIRE(me   != (chain_t **)0);
+    ASSERT_REQUIRE(cell != (chain_t *)0);
+    if ((me == (chain_t **)0) || (cell == (chain_t *)0)) { 
         return FAILURE; 
     } 
 
-    /* The Active Object Has Bind in Chain Pool ? */
-    if (rchain_find(me, event) != (chain_t *)0) { 
+    /* The Cell Has Bind in GeneralChain ? */
+    if (uchain_find(me, cell) != (chain_t *)0) { 
         /* Find It */
-        SPYER_RCHAIN("Event %X Has Bind in Event Register Chain %X. TimeStamp %d", \\
-                      event, me, ticks_get()); 
+        SPYER_UCHAIN("Cell %X Has Bind in General Chain %X. TimeStamp %d", 
+                     cell, me, ticks_get()); 
         return TRUE; 
     } 
 
-    /* Get the Block from Event Register Chain Pool */
+    /* Get the Block from Chain Pool */
     chain = (chain_t *)cpool_get(); 
     ASSERT_ENSURE(chain != (chain_t *)0); 
     if (chain == (chain_t *)0) { 
         return FAILURE; 
     }
 
-    /* Initialize the Event Register Chain Cell */
-    chain->builtin = (void_t *)event; 
+    /* Initialize the General Chain Cell */
+    chain->builtin = (void_t *)cell; 
 
-    if(*me == (chain_t *)0) {   /* If Priority-Based Event Register Chain is NULL */
+    if(*me == (chain_t *)0) {   /* If General Chain is NULL */
         *me = chain;            /* Set the List Head */
         chain->next = chain;
         chain->fore = chain;
     }
-    else {  /* The Priority-Based Event Register Chain is Not NULL */
-        /* The Priority of "event" is High than The Highest Priority Event ? */
-        if(event->priority < ((event_t *)(current->builtin))->priority) {   
-            /* Yes, It High Than The Highest Priority Event */
-            /* Get the Pointer of the Highest Priority Event */
-            current = *me;
-            /* Append this Event into The Head of Event Chain */
-            chain->next  = current;
-            chain->fore  = current->fore;  /* Circulated Bidirectional List */
-            current->fore = chain;
-            chain->fore->next = chain;    /* Circulated Bidirectional List */
-            /* Set the List Head */
-            *me = chain;
-        }
-        else {   
-            /* Not, It Low or Equal Than The Highest Priority Event */
-            /* Get the Pointer of the Lowest Priority Event */
-            current = (*me)->fore;
-            /* Search the List of Event, Find the Insert Point */
-            while((current != (*me)) && (event->priority < ((event_t *)(current->builtin))->priority)) {
-                current = current->fore;     /* Point to Fore Event */
-            }
-            /***************************************************************************
-            *   This NOT Need to ASSERT the (current == *me) , Because the 
-            *   Event Should Append the Back-Side of *me when Not Find the 
-            *   Insert Point in This while() Loop.
-            ***************************************************************************/
-            /* Append this Event into The Event Chain */
-            chain->next  = current->next;
-            chain->fore  = current;
-            current->next = chain;
-            chain->next->fore = chain;
-        }
+    else {  /* The General Chain is Not NULL */
+        /* Bind into the End of the General Chain */
+        current = (*me)->fore;
+        /* Append this Cell into The General Chain */
+        chain->next  = current->next;
+        chain->fore  = current;
+        current->next = chain;
+        chain->next->fore = chain;
     }
 
-    SPYER_RCHAIN("Event %X is Bind into Event Register Chain %X. TimeStamp %d", \\
-                  event, me, ticks_get()); 
+    SPYER_UCHAIN("Data %X is Bind into General Chain %X. TimeStamp %d", 
+                 cell, me, ticks_get()); 
 
     return TRUE; 
 }
 
 /***************************************************************************************
-*   rchain_unbind() Implementation.
+*   uchain_unbind() Implementation.
 ***************************************************************************************/
-int16_t rchain_unbind(chain_t **me, chain_t *chain)
+int16_t uchain_unbind(chain_t **me, void_t *cell)
 {
     int16_t ret; 
+    chain_t *chain; 
     chain_t *current; 
 
-    ASSERT_REQUIRE(me  != (chain_t **)0);
-    ASSERT_REQUIRE(chain != (chain_t *)0);
-    if ((me == (chain_t **)0) || (chain == (chain_t *)0)) { 
+    ASSERT_REQUIRE(me   != (chain_t **)0);
+    ASSERT_REQUIRE(cell != (void_t *)0);
+    if ((me == (chain_t **)0) || (cell == (void_t *)0)) { 
         return FAILURE; 
+    } 
+
+    /* The Cell Has Live in General Chain ? */
+    chain = uchain_find(me, cell); 
+    if (chain == (chain_t *)0) { 
+        /* Dont' Find It */
+        SPYER_UCHAIN("Cell %X Has Unbind from General Chain %X. TimeStamp %d", 
+                     cell, me, ticks_get()); 
+        return TRUE; 
     } 
 
     /***********************************************************************************
@@ -211,15 +189,12 @@ int16_t rchain_unbind(chain_t **me, chain_t *chain)
         } 
     }
 
-    /* Release the Block of Event */
-    ret = epool_release((event_t *)(current->builtin)); 
-    ASSERT_ENSURE(ret >= (int16_t)0); 
-    /* Release the Block of Event Register Chain Cell */
+    /* Release the Block of General Chain Cell */
     ret = cpool_put((chain_t *)chain); 
     ASSERT_ENSURE(ret == TRUE); 
 
-    SPYER_RCHAIN("Event %X is Unbind from Event Register Chain %X. TimeStamp %d", \\
-                  event, me, ticks_get()); 
+    SPYER_UCHAIN("Cell %X is Unbind from General Chain %X. TimeStamp %d", 
+                 cell, me, ticks_get()); 
 
     return TRUE;
 }

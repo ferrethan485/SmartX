@@ -79,7 +79,7 @@ typedef struct active_tag {
     *   The Object's Attribute 
     ***********************************************************************************/
     /*  Quit Request */
-    int16_t   exit;     /* Exit Request */
+    int16_t   exit;     /* Quit Request */
     /*  Reset Request */
     int16_t   reset;    /* Reset Request */
     /*  Pause Status */ 
@@ -98,18 +98,19 @@ typedef struct active_tag {
     /***********************************************************************************
     *   The Object's Behavior.
     ***********************************************************************************/
-    active_version_t version;     /* Get Object's Version */
-    active_name_t    name;        /* Get Object's Name */
-    active_function_t start;           /* Start */
-    active_function_t probe;           /* Probe */
-    active_function_t run;             /* Run, Return the IDLE Status */
-    active_function_t reset;           /* Reset */
-    active_function_t quit;            /* Force Quit */
-    active_function_t pause;           /* Pause */
-    active_function_t resume;          /* Resume */
-    active_function_t is_idle;         /* Is in Idle State */
-    active_function_t callback_exit;   /* Exit  Callback */
-    active_function_t callback_reset;  /* Reset Callback */
+    active_version_t  version;          /* Get Object's Version */
+    active_name_t     name;             /* Get Object's Name */
+    active_function_t start;            /* Start, Must be Imeplemented by User */
+    active_function_t probe;            /* Probe, Must be Imeplemented by User */
+    active_function_t flushout;         /* Flush Out the Event Chain */
+    active_function_t run;              /* Run, Return the IDLE Status */
+    active_function_t reset;            /* Request Reset */
+    active_function_t quit;             /* Request Quit */
+    active_function_t pause;            /* Request Pause */
+    active_function_t resume;           /* Request Resume */
+    active_function_t on_idle;          /* Is in Idle State */
+    active_function_t callback_exit;    /* Exit  Callback */
+    active_function_t callback_reset;   /* Reset Callback */
 } active_t; 
 
 #ifdef __cplusplus

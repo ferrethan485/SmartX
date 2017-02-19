@@ -208,6 +208,18 @@ int16_t mpool_put(void_t *block)
     return TRUE; 
 }
 
+/***************************************************************************************
+*   mpool_all_recycled() Implementation.
+***************************************************************************************/
+int16_t mpool_all_recycled(mpool_t *me)
+{
+    if(me->free_cnt < me->total_cnt) { 
+        return FALSE; 
+    }
+    /* Fault-Tolerant for "me->free_cnt > me->total_cnt" */
+    return  TRUE; 
+}
+
 #ifdef SPYER_MPOOL_ENABLE   /* Spy Debuger Enabled */
 /***************************************************************************************
 *   mpool_margin() Implementation.

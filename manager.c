@@ -113,6 +113,16 @@ int16_t man_init(void_t)
     ret = stack_init(manager -> stack, (void_t **)&man_buffer[0], (uint16_t)LEN_BUFF_MSTACK); 
     ASSERT_ENSURE(ret == TRUE); 
 
+    /***********************************************************************************
+    *   Initialze the Subscribe Event Pool. 
+    ***********************************************************************************/
+    ret = mpool_init((mpool_t *)&epool_subscribe, 
+                     (void_t *)buff_subscribe, 
+                     (uint32_t)sizeof(buff_subscribe), 
+                     (uint16_t)sizeof(event_t)
+                    );
+    ASSERT_ENSURE(ret == TRUE); 
+
     SPYER_MANAGER("The Active Object Manager %X is Initialized.", manager); 
 
     /* Callback for Initialize the Active Objects Defined by Application */
@@ -146,8 +156,8 @@ int16_t man_subscribe(event_t *event, active_t *active)
     if (chain != (chain_t *)0) { 
         /* Release the Event */
         ret = epool_release(event); 
-        ASSERT_ENSURE(ret == TRUE); 
-        if (ret != TRUE) { 
+        ASSERT_ENSURE(ret >= (int16_t)0); 
+        if (ret < (int16_t)0) { 
             return FAILURE; 
         } 
         /* Get List Head of Active Object Chain */
@@ -207,8 +217,8 @@ int16_t man_unsubscribe(event_t *event, active_t *active)
     signal = event->signal; 
     /* Release the Event */
     ret = epool_release(event); 
-    ASSERT_ENSURE(ret == TRUE); 
-    if (ret != TRUE) { 
+    ASSERT_ENSURE(ret >= (int16_t)0); 
+    if (ret < (int16_t)0) { 
         return FAILURE; 
     } 
     /* Has the Event with Same "signal" in the Subscribes List ? */

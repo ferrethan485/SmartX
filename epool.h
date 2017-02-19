@@ -90,7 +90,7 @@ EPOOL_EXT event_t *epool_new(mpool_t *me, signal_t signal, uint16_t priority, ui
 *
 *   Description: Recycle a Dynamic Event Back into a Event Pool. 
 *   Argument: event -- Pointer to the Event which is Put Back. 
-*   Return: 1 is True, 0 is False, -1 is Failure
+*   Return: Return the "dynamic_" Usage Counter, -1 is Failure
 *
 *   NOTE: 
 *   (1) This Function Implements a Simple Garbage Collector for the Dynamic Events. 
@@ -111,6 +111,17 @@ EPOOL_EXT event_t *epool_new(mpool_t *me, signal_t signal, uint16_t priority, ui
 *       In this Case you need to Call epool_release() Explicitly.
 ***************************************************************************************/
 EPOOL_EXT int16_t epool_release(event_t *event);
+
+/***************************************************************************************
+*   All Event are Recycled for the Given Event Pool ? 
+*
+*   Description:  All Block are Event for the Given Event Pool ? 
+*   Argument: me -- Pointer to the mpool_t Struct to be Inquired. 
+*   Return: 1 is True, 0 is False, -1 is Failure
+*
+*   NOTE: 
+***************************************************************************************/
+MPOOL_EXT int16_t epool_all_recycled(mpool_t *me); 
 
 /***************************************************************************************
 *   Get the Margin of the Given Event Pool.

@@ -134,12 +134,14 @@ typedef signed int   sig_atomic_t;      // For 32 Bits Memory Data Bus
 typedef unsigned short bool_t;
 
 /* Float Type, WG14/N843 C99 Standard */
-typedef float       float16_t;
-typedef double      float32_t;
-typedef long double float64_t;
+typedef float       float32_t;
+typedef double      float64_t;
+typedef long double float128_t;
 
-/* This is a Special 64 bit Float Type that is 8-byte Aligned */
-#define aligned_float64_t   (long double __attribute__((aligned(8))));
+/* This is a Special  64 bit Float Type that is  8-byte Aligned */
+#define aligned_float64_t   (     double __attribute__((aligned(8))));
+/* This is a Special 128 bit Float Type that is 16-byte Aligned */
+#define aligned_float128_t  (long double __attribute__((aligned(16))));
 
 /* Grab the 16-Bits Float Internal Binary Representation */
 typedef union float16_bin_tag

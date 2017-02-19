@@ -222,7 +222,7 @@ int16_t echain_flush(chain_t **me)
         current->fore->next = current->next;
         /* Release the Block of Event */
         ret = epool_release((event_t *)(current->builtin)); 
-        ASSERT_ENSURE(ret == TRUE); 
+        ASSERT_ENSURE(ret >= (int16_t)0); 
         /* Release the Block of Event Chain Cell */
         ret = cpool_put((chain_t *)current); 
         ASSERT_ENSURE(ret == TRUE); 
@@ -231,7 +231,7 @@ int16_t echain_flush(chain_t **me)
     }
     /* Release the Block of Event */
     ret = epool_release((event_t *)(current->builtin)); 
-    ASSERT_ENSURE(ret == TRUE); 
+    ASSERT_ENSURE(ret >= (int16_t)0); 
     /* Release the Block of Event Chain Cell */
     ret = cpool_put((chain_t *)current); 
     ASSERT_ENSURE(ret == TRUE); 

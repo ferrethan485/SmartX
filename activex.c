@@ -89,218 +89,35 @@ int8_t const ROM_KEYWORDS * active_name(void_t)
 }
 
 /***************************************************************************************
-*   active_reset() Implementation.
+*   active_flushout() Implementation. 
 ***************************************************************************************/
-int16_t active_reset(active_t *me)
+int16_t active_flushout(active_t *me) 
 {
+    event_t *event;
+
     ASSERT_REQUIRE(me != (active_t *)0); 
     if (me == (active_t *)0) { 
         return FAILURE; 
     } 
-    /* Request to Reset */ 
-    me -> reset = (int16_t)1; 
 
-    SPYER_ACTIVEX("Request to Reset the Active Object %X. TimeStamp %d", me, ticks_get()); 
-    return TRUE; 
-}
-
-/***************************************************************************************
-*   active_quit() Implementation.
-***************************************************************************************/
-int16_t active_quit(active_t *me)
-{
-    ASSERT_REQUIRE(me != (active_t *)0); 
-    if (me == (active_t *)0) { 
-        return FAILURE; 
+    /* Flush Out the Defer Event */
+    while (me->defer != (chain_t *)0) { 
+        /* Get One Event from Defer Event Chain */
+        event = echain_get((chain_t **)&(me->defer)); 
+        /* Release the Event */
+        epool_release(event); 
+        SPYER_ACTIVEX("Event[%X] is Flush Out from Defer Chain[%X] of Active Object[%X]. TimeStamp %d", \\
+                       event, me->defer, me, ticks_get()); 
     } 
-    /* Request to Exit */
-    me -> exit = (int16_t)1; 
-    SPYER_ACTIVEX("Request to Exit the Active Object %X. TimeStamp %d", me, ticks_get()); 
-    return TRUE; 
-}
-
-/***************************************************************************************
-*   active_pause() Implementation.
-***************************************************************************************/
-int16_t active_pause(active_t *me)
-{
-    ASSERT_REQUIRE(me != (active_t *)0); 
-    if (me == (active_t *)0) { 
-        return FAILURE; 
+    while (me->event != (chain_t *)0) { 
+        /* Get One Event from Event Chain */
+        event = echain_get((chain_t **)&(me->event)); 
+        /* Release the Event */
+        epool_release(event); 
+        SPYER_ACTIVEX("Event[%X] is Flush Out from Event Chain[%X] of Active Object[%X]. TimeStamp %d", \\
+                       event, me->event, me, ticks_get()); 
     } 
-    /* Request to Pause */ 
-    me -> pause = (int16_t)1; 
-    SPYER_ACTIVEX("Request to Pause the Active Object %X. TimeStamp %d", me, ticks_get()); 
-    return TRUE; 
-}
-
-/***************************************************************************************
-*   active_resume() Implementation.
-***************************************************************************************/
-int16_t active_resume(active_t *me)
-{
-    ASSERT_REQUIRE(me != (active_t *)0); 
-    if (me == (active_t *)0) { 
-        return FAILURE; 
-    } 
-    /* Clear the Pause */ 
-    me -> pause = (int16_t)0; 
-    SPYER_ACTIVEX("Request to Resume the Active Object %X. TimeStamp %d", me, ticks_get()); 
-    return TRUE; 
-}
-
-/***************************************************************************************
-*   active_is_idle() Implementation.
-***************************************************************************************/
-int16_t active_is_idle(active_t *me)
-{
-    ASSERT_REQUIRE(me != (active_t *)0); 
-    if (me == (active_t *)0) { 
-        return FAILURE; 
-    } 
-    /***********************************************************************************
-    *   When None Event in the Event Chain and the HSM is in IDLE State, The Active 
-    *   Object is be IDLE State. 
-    ***********************************************************************************/
-    ASSERT_REQUIRE(me->hsm->is_idle != (hsm_function_t)0); 
-    if (me->hsm->is_idle != (hsm_function_t)0) { 
-        if ((*(me->hsm->is_idle))(me->hsm) != TRUE) { 
-            return FALSE; 
-        } 
-    } 
-    if (me->event != (chain_t *)0) { 
-        return FALSE; 
-    } 
-    if (me->defer != (chain_t *)0) { 
-        return FALSE; 
-    } 
-    SPYER_ACTIVEX("Active Object %X is Idle. TimeStamp %d", me, ticks_get()); 
-    return TRUE; 
-}
-
-/***************************************************************************************
-*   active_start() Implementation.
-***************************************************************************************/
-int16_t active_start(active_t *me)
-{
-    ASSERT_REQUIRE(me != (active_t *)0); 
-    if (me == (active_t *)0) { 
-        return FAILURE; 
-    } 
-    /***********************************************************************************
-    *   Construct and Initialize the Resource of Active Object. 
-    *   Allocate the Rsource Associated with This Object at Here. 
-    ***********************************************************************************/
-
-    /***********************************************************************************
-    *   Initialize the HSM, and Execute the Initial Conversion, Entry the Begin State 
-    *   of HSM.
-    ***********************************************************************************/
-
-    /***********************************************************************************
-    *   At Here, The Hardware of Active Object Worked on is Opened by Object Itself.
-    *   NOTE: 
-    *   The Open of Hardware Associated with the Object MUST Located at Here, Because 
-    *   It Must be Executed after Object is Enter Ready Work Status, Initialization 
-    *   has been Completed.
-    ***********************************************************************************/
-
-    /***********************************************************************************
-    *   Subscribe the Event "Signal" Required by Active Object. 
-    *   NOTE: 
-    *   (1) MUST Not Flush Out the Event Queue of This Active, Because It is Possible 
-    *   that the Events is Generated by Hardware or Other High Priority Object when 
-    *   Execute this Function.
-    ***********************************************************************************/
-
-    SPYER_ACTIVEX("Start the Active Object %X. TimeStamp %d", me, ticks_get()); 
-    return TRUE; 
-}
-
-/***************************************************************************************
-*   active_exit() Implementation. 
-***************************************************************************************/
-int16_t active_exit(active_t *me)
-{
-    ASSERT_REQUIRE(me != (active_t *)0); 
-    if (me == (active_t *)0) { 
-        return FAILURE; 
-    } 
-    /* Check the Quit Condition at Here. */
-    if () { 
-        /* Don't Meet the Quit Condition */
-        return FALSE; 
-    } 
-    /* If Meet the Quit Condition, Execute the Quit Operation at Here. */
-    /***********************************************************************************
-    *   Unsubscribe the Event "Signal" Required by Active Object. 
-    ***********************************************************************************/
-
-    /***********************************************************************************
-    *   Close the Hardware Associated with This Active Object.
-    *   NOTE: 
-    *   The Close Action of Hardware Associated with the Active Object MUST Located
-    *   at Here, Because It Must be Executed to Set the Hardware into Security Status 
-    *   before Active Object is Destoryed.
-    ***********************************************************************************/
-
-    /***********************************************************************************
-    *   Destroy the Resource of Active Object. 
-    *   Release All the Resource of Active Object, e.g., the Memory Block which Get 
-    *   from Memory Pool. 
-    ***********************************************************************************/
-
-    /***********************************************************************************
-    *   Flush Out the Event Chain. 
-    *   Release the Dynamic Event Allocated from the Event Pools.    
-    ***********************************************************************************/
-
-    SPYER_ACTIVEX("The Active Object %X is Exit. TimeStamp %d", me, ticks_get()); 
-    return TRUE; 
-}
-
-/***************************************************************************************
-*   active_reset_() Implementation. 
-***************************************************************************************/
-int16_t active_reset_(active_t *me)
-{
-    ASSERT_REQUIRE(me != (active_t *)0); 
-    if (me == (active_t *)0) { 
-        return FAILURE; 
-    } 
-    /* Check the Reset Condition at Here. */
-    if () { 
-        /* Don't Meet the Reset Condition */
-        return FALSE; 
-    } 
-    /* If Meet the Reset Condition, Execute the Reset Operation at Here. */
-
-    SPYER_ACTIVEX("The Active Object %X is Reset. TimeStamp %d", me, ticks_get()); 
-} 
-
-/***************************************************************************************
-*   active_probe() Implementation.
-***************************************************************************************/
-int16_t active_probe(active_t *me)
-{
-    ASSERT_REQUIRE(me != (active_t *)0); 
-    if (me == (active_t *)0) { 
-        return FAILURE; 
-    } 
-    /***********************************************************************************
-    *   Open the Hardware Associated with the Active Object. 
-    ***********************************************************************************/
-
-    /***********************************************************************************
-    *   Direct Send Command (Get Version or Get Status, etc) to the Hardware for 
-    *   Identificat It. 
-    ***********************************************************************************/
-
-    /***********************************************************************************
-    *   Close the Hardware Associated with the Active Object. 
-    ***********************************************************************************/
-
-    return TRUE; 
+    return  TRUE; 
 }
 
 /***************************************************************************************
@@ -392,3 +209,222 @@ int16_t active_run(active_t *me)
     } 
     return TRUE; 
 }
+
+/***************************************************************************************
+*   active_reset() Implementation.
+***************************************************************************************/
+int16_t active_reset(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /* Request to Reset */ 
+    me -> reset = (int16_t)1; 
+
+    SPYER_ACTIVEX("Request to Reset the Active Object %X. TimeStamp %d", me, ticks_get()); 
+    return TRUE; 
+}
+
+/***************************************************************************************
+*   active_quit() Implementation.
+***************************************************************************************/
+int16_t active_quit(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /* Request to Exit */
+    me -> exit = (int16_t)1; 
+    SPYER_ACTIVEX("Request to Exit the Active Object %X. TimeStamp %d", me, ticks_get()); 
+    return TRUE; 
+}
+
+/***************************************************************************************
+*   active_pause() Implementation.
+***************************************************************************************/
+int16_t active_pause(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /* Request to Pause */ 
+    me -> pause = (int16_t)1; 
+    SPYER_ACTIVEX("Request to Pause the Active Object %X. TimeStamp %d", me, ticks_get()); 
+    return TRUE; 
+}
+
+/***************************************************************************************
+*   active_resume() Implementation.
+***************************************************************************************/
+int16_t active_resume(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /* Clear the Pause */ 
+    me -> pause = (int16_t)0; 
+    SPYER_ACTIVEX("Request to Resume the Active Object %X. TimeStamp %d", me, ticks_get()); 
+    return TRUE; 
+}
+
+/***************************************************************************************
+*   active_on_idle() Implementation.
+***************************************************************************************/
+int16_t active_on_idle(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /***********************************************************************************
+    *   When None Event in the Event Chain and the HSM is in IDLE State, The Active 
+    *   Object is be IDLE State. 
+    ***********************************************************************************/
+    ASSERT_REQUIRE(me->hsm->is_idle != (hsm_function_t)0); 
+    if (me->hsm->is_idle != (hsm_function_t)0) { 
+        if ((*(me->hsm->is_idle))(me->hsm) != TRUE) { 
+            return FALSE; 
+        } 
+    } 
+    if (me->event != (chain_t *)0) { 
+        return FALSE; 
+    } 
+    if (me->defer != (chain_t *)0) { 
+        return FALSE; 
+    } 
+    SPYER_ACTIVEX("Active Object %X is Idle. TimeStamp %d", me, ticks_get()); 
+    return TRUE; 
+}
+
+/***************************************************************************************
+*   active_start() Implementation.
+***************************************************************************************/
+int16_t active_start(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /***********************************************************************************
+    *   Construct and Initialize the Resource of Active Object. 
+    *   Allocate the Rsource Associated with This Object at Here. 
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   Construct and Initialize the HSM, and Execute the Initial Conversion, Entry 
+    *   the Begin State of HSM.
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   At Here, The Hardware of Active Object Worked on is Opened by Object Itself.
+    *   NOTE: 
+    *   The Open of Hardware Associated with the Object MUST Located at Here, Because 
+    *   It Must be Executed after Object is Enter Ready Work Status, Initialization 
+    *   has been Completed.
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   Subscribe the Event "Signal" Required by Active Object. 
+    *   NOTE: 
+    *   (1) MUST Not Flush Out the Event Queue of This Active, Because It is Possible 
+    *   that the Events is Generated by Hardware or Other High Priority Object when 
+    *   Execute this Function.
+    ***********************************************************************************/
+
+    SPYER_ACTIVEX("Start the Active Object %X. TimeStamp %d", me, ticks_get()); 
+    return TRUE; 
+}
+
+/***************************************************************************************
+*   active_probe() Implementation.
+***************************************************************************************/
+int16_t active_probe(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /***********************************************************************************
+    *   Open the Hardware Associated with the Active Object. 
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   Direct Send Command (Get Version or Get Status, etc) to the Hardware for 
+    *   Identificat It. 
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   Close the Hardware Associated with the Active Object. 
+    ***********************************************************************************/
+
+    return TRUE; 
+}
+
+/***************************************************************************************
+*   active_on_quit() Implementation. 
+***************************************************************************************/
+int16_t active_on_quit(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /* Check the Quit Condition at Here. */
+    if (0) { 
+        /* Don't Meet the Quit Condition */
+        return FALSE; 
+    } 
+    /* If Meet the Quit Condition, Execute the Quit Operation at Here. */
+    /***********************************************************************************
+    *   Unsubscribe the Event "Signal" Required by Active Object. 
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   Close the Hardware Associated with This Active Object.
+    *   NOTE: 
+    *   The Close Action of Hardware Associated with the Active Object MUST Located
+    *   at Here, Because It Must be Executed to Set the Hardware into Security Status 
+    *   before Active Object is Destoryed.
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   Destroy the HSM. 
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   Destroy the Resource of Active Object. 
+    *   Release All the Resource of Active Object, e.g., the Memory Block which Get 
+    *   from Memory Pool. 
+    ***********************************************************************************/
+
+    /***********************************************************************************
+    *   Flush Out the Event Chain. 
+    *   Release the Dynamic Event Allocated from the Event Pools.    
+    ***********************************************************************************/
+
+    SPYER_ACTIVEX("The Active Object %X is Exit. TimeStamp %d", me, ticks_get()); 
+    return TRUE; 
+}
+
+/***************************************************************************************
+*   active_on_reset_() Implementation. 
+***************************************************************************************/
+int16_t active_on_reset(active_t *me)
+{
+    ASSERT_REQUIRE(me != (active_t *)0); 
+    if (me == (active_t *)0) { 
+        return FAILURE; 
+    } 
+    /* Check the Reset Condition at Here. */
+    if (0) { 
+        /* Don't Meet the Reset Condition */
+        return FALSE; 
+    } 
+    /* If Meet the Reset Condition, Execute the Reset Operation at Here. */
+
+    SPYER_ACTIVEX("The Active Object %X is Reset. TimeStamp %d", me, ticks_get()); 
+} 

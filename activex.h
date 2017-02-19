@@ -66,6 +66,31 @@ MANAGER_EXT int8_t const ROM_KEYWORDS * active_version(void_t);
 MANAGER_EXT int8_t const ROM_KEYWORDS * active_name(void_t); 
 
 /***************************************************************************************
+*   Runner for the Active Object.
+*
+*   Description: Run the Active Object, The Manager Schedule the Run of Active Object
+*                through This Function.
+*   Argument: me --- The Pointer of Active Object. 
+*   Return:  1 is True, 0 is False, -1 is Failure 
+*
+*   NOTE: 
+*   (1) This Function MUST be Called after active_start().
+***************************************************************************************/
+ACTIVEX_EXT int16_t active_run(active_t *me);
+
+/***************************************************************************************
+*   Reset the Active Object. 
+*
+*   Description: Reset the Active Object. 
+*   Argument: me --- The Pointer of Active Object. 
+*   Return:  1 is True, 0 is False, -1 is Failure 
+*
+*   NOTE: 
+*   (1) This Function MUST be Called after active_start().
+***************************************************************************************/
+ACTIVEX_EXT int16_t active_reset(active_t *me);
+
+/***************************************************************************************
 *   Quit the Active Object.
 *
 *   Description: Quit the Active Object and Flush Out the Event Chain. 
@@ -94,18 +119,6 @@ MANAGER_EXT int8_t const ROM_KEYWORDS * active_name(void_t);
 *       and Release the Resource which Allocated at Object Initialize.
 ***************************************************************************************/
 ACTIVEX_EXT int16_t active_quit(active_t *me);
-
-/***************************************************************************************
-*   Reset the Active Object. 
-*
-*   Description: Reset the Active Object. 
-*   Argument: me --- The Pointer of Active Object. 
-*   Return:  1 is True, 0 is False, -1 is Failure 
-*
-*   NOTE: 
-*   (1) This Function MUST be Called after active_start().
-***************************************************************************************/
-ACTIVEX_EXT int16_t active_reset(active_t *me);
 
 /***************************************************************************************
 *   Pause the Run of Active Object. 
@@ -141,7 +154,7 @@ ACTIVEX_EXT int16_t active_resume(active_t *me);
 *   NOTE: 
 *   (1) This Function MUST be Called after active_start().
 ***************************************************************************************/
-ACTIVEX_EXT int16_t active_is_idle(active_t *me);
+ACTIVEX_EXT int16_t active_on_idle(active_t *me);
 
 /***************************************************************************************
 *   Start the Active Object.
@@ -168,17 +181,26 @@ ACTIVEX_EXT int16_t active_start(active_t *me);
 ACTIVEX_EXT int16_t active_probe(active_t *me); 
 
 /***************************************************************************************
-*   Runner for the Active Object.
+*   Deal the Quit Request for the Active Object.
 *
-*   Description: Run the Active Object, The Manager Schedule the Run of Active Object
-*                through This Function.
+*   Description: Deal the Quit Request for the Active Object.
 *   Argument: me --- The Pointer of Active Object. 
 *   Return:  1 is True, 0 is False, -1 is Failure 
 *
 *   NOTE: 
-*   (1) This Function MUST be Called after active_start().
 ***************************************************************************************/
-ACTIVEX_EXT int16_t active_run(active_t *me);
+ACTIVEX_EXT int16_t active_on_quit(active_t *me); 
+
+/***************************************************************************************
+*   Deal the Reset Request for the Active Object.
+*
+*   Description: Deal the Reset Request for the Active Object.
+*   Argument: me --- The Pointer of Active Object. 
+*   Return:  1 is True, 0 is False, -1 is Failure 
+*
+*   NOTE: 
+***************************************************************************************/
+ACTIVEX_EXT int16_t active_on_reset(active_t *me); 
 
 #ifdef SPYER_ACTIVEX_ENABLE   /* Spy Debuger Enabled */
     #define SPYER_ACTIVEX(format, ...)   spyer_((const int8_t *)format, ##__VA_ARGS__)

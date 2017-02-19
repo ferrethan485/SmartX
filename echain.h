@@ -94,7 +94,7 @@ ECHAIN_EXT int16_t echain_post(chain_t **me, event_t *event);
 *                which Have Highest Priority. 
 *   Argument: me -- Pointer to the List Head of Event Chain. 
 *   Return: The Pointer to Highest Priority Event, or else Return NULL if Have Not 
-*           Event in that Chain or no Free Blocks are Available.
+*           Event in that Chain.
 *
 *   NOTE: 
 *   (1) This Function is Called from Object Itself.

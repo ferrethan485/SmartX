@@ -108,13 +108,11 @@ int16_t epool_release(event_t *event)
         return FAILURE; 
     } 
 
-    ret = TRUE; 
-
     INT_LOCK_KEY_
     INT_LOCK_();
-    if (event->dynamic_ > 1) {  /* Isn't This the Last Reference ? */
+    --event->dynamic_;
+    if (event->dynamic_ > 0) {  /* Isn't This the Last Reference ? */
         /* Decrement the Reference Counter */
-        --event->dynamic_;
         INT_UNLOCK_();
         /* Cast the 'const' Away, which is Legitimate Because it's a Pool Event */
         SPYER_EMPOOL("Attempt Recycle Event %X to Pool %X, Signal %d, Dynamic %d. TimeStamp %d", \\ 
@@ -123,16 +121,25 @@ int16_t epool_release(event_t *event)
     else {  /* This is the Last Reference to This Event, Recycle It */
         INT_UNLOCK_();
         if (event->static_ == (int16_t)1) {
-            --event->dynamic_; 
             return ret; 
         } 
         /* Cast 'const' Away, which is Legitimate, Because it's a Pool Event */
         ret = mpool_put((void_t *)event);
-
+        if (ret != TRUE) { 
+            return FAILURE;
+        } 
         SPYER_EMPOOL("Recycle Event %X to Pool %X, Signal %d, Dynamic %d. TimeStamp %d", \\ 
                       event, event->mpool_, event->signal, event->dynamic, ticks_get());
     } 
-    return ret; 
+    return  event->dynamic_; 
+}
+
+/***************************************************************************************
+*   epool_all_recycled() Implementation.
+***************************************************************************************/
+int16_t epool_all_recycled(mpool_t *me)
+{
+    return mpool_all_recycled(me); 
 }
 
 #ifdef SPYER_EPOOL_ENABLE   /* Spy Debuger Enabled */

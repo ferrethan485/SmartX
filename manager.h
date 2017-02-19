@@ -137,15 +137,39 @@ MANAGER_EXT stack_t  man_stack;
 *   Signal Internal Constants for System Use Only
 ***************************************************************************************/
 enum {
-    SIG_QUIT_ = 1;      /* Signal for Quit   the Active Object */
-    SIG_START_;         /* Signal for Start  the Active Object */
-    SIG_RESET_;         /* Signal for Reset  the Active Object */
-    SIG_PAUSE_;         /* Signal for Pause  the Active Object */
-    SIG_RESUME_;        /* Signal for Resume the Active Object */
-    SIG_FAULT;          /* Signal for Fault */
+    SIGNAL_QUIT_ = 1;      /* Signal for Quit   the Active Object */
+    SIGNAL_START_;         /* Signal for Start  the Active Object */
+    SIGNAL_RESET_;         /* Signal for Reset  the Active Object */
+    SIGNAL_PAUSE_;         /* Signal for Pause  the Active Object */
+    SIGNAL_RESUME_;        /* Signal for Resume the Active Object */
+    SIGNAL_FAULT_;         /* Signal for Fault */
 };
 
-#define PRIO_EVT_FAULT      ((uint16_t)32768)   /* Event Priority for Fault */
+#define PRIO_EVT_FAULT      ((uint16_t)0)   /* Event Priority for Fault, Highest */
+
+/***************************************************************************************
+*   Used Define the Subscribed Event for the Active Object, Used ONLY by User 
+*   Application. 
+***************************************************************************************/
+typedef struct subscribe_tag { 
+    signal_t  signal;       /* Event Signal */
+    uint16_t  priority;     /* Event Priority */
+    uint16_t  threshold;    /* Event Threshold for Preempt */
+}subscribe_t;
+
+/***************************************************************************************
+*   Event Pool Used for Event Subscribe. 
+***************************************************************************************/
+#ifndef MAX_SUBSCRIBE_EVENTS
+    /***********************************************************************************
+    *   This Constant Defines the Maximum Event Quantity of Event Subscribe. 
+    ***********************************************************************************/
+    #define MAX_SUBSCRIBE_EVENTS    256     /* Default is 256 */
+#endif      /* End of MAX_SUBSCRIBE_EVENTS */
+
+/* Buffer for Subscribe Event Pool */
+MANAGER_EXT  uint8_t buff_subscribe[(sizeof(event_t) + sizeof(void_t *)) * MAX_SUBSCRIBE_EVENTS + 4]; 
+MANAGER_EXT  mpool_t epool_subscribe; 
 
 /***************************************************************************************
 *   Return the Pointer of Active Object Manager's Version.
